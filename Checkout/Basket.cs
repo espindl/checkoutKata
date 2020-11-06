@@ -7,11 +7,13 @@ namespace Checkout
     {
         private readonly Dictionary<string, decimal> _prices;
         private readonly Dictionary<string, int> _items;
+        private readonly List<SpecialOffer> _offers;
 
-        public Basket(Dictionary<string, decimal> prices)
+        public Basket(Dictionary<string, decimal> prices, List<SpecialOffer> offers)
         {
             _prices = prices;
             _items = new Dictionary<string, int>();
+            _offers = offers;
         }
         
         public void Scan(string sku)
@@ -27,7 +29,19 @@ namespace Checkout
         public decimal GetTotal()
         {
             decimal total = 0;
-            total += _items.Sum(item => _prices[item.Key] * item.Value);
+            if (_items.Count == 0) return total;
+            var tempItems = new Dictionary<string, int>(_items);
+
+            foreach (var offer in _offers)
+            {
+                var itemCount = tempItems.ContainsKey(offer.Sku) ? tempItems[offer.Sku] : 0;
+                if (itemCount < offer.Quantity) continue;
+                var countSubjectToOffer = itemCount / offer.Quantity;
+                total += offer.OfferPrice * countSubjectToOffer;
+                tempItems[offer.Sku] -= (countSubjectToOffer * offer.Quantity);
+            }
+
+            total += tempItems.Sum(item => _prices[item.Key] * item.Value);
             return total;
         }
     }
