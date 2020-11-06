@@ -116,5 +116,25 @@ namespace Checkout.Tests
             basket.Scan("B15");
             Assert.Equal(1.75M,basket.GetTotal());
         }
+        
+        [Fact]
+        public void ReturnsRightTotalForItemListContainingSpecialOfferButNotApplyingOffers()
+        {
+            var basket = new Basket(_prices,_offers);
+            basket.Scan("B15");
+            basket.Scan("A99");
+            basket.Scan("B15");
+            Assert.Equal(1.1M,basket.GetTotal(false));
+        }
+        
+        [Fact]
+        public void ReturnsRightTotalForItemListContainingOnlySpecialOfferButNotApplyingOffers()
+        {
+            var basket = new Basket(_prices,_offers);
+            basket.Scan("A99");
+            basket.Scan("A99");
+            basket.Scan("A99");
+            Assert.Equal(1.5M,basket.GetTotal(false));
+        }
     }
 }

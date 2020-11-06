@@ -26,19 +26,22 @@ namespace Checkout
             _items.Add(sku,1);
         }
         
-        public decimal GetTotal()
+        public decimal GetTotal(bool applySpecialOffers = true)
         {
             decimal total = 0;
             if (_items.Count == 0) return total;
             var tempItems = new Dictionary<string, int>(_items);
 
-            foreach (var offer in _offers)
+            if (applySpecialOffers)
             {
-                var itemCount = tempItems.ContainsKey(offer.Sku) ? tempItems[offer.Sku] : 0;
-                if (itemCount < offer.Quantity) continue;
-                var countSubjectToOffer = itemCount / offer.Quantity;
-                total += offer.OfferPrice * countSubjectToOffer;
-                tempItems[offer.Sku] -= (countSubjectToOffer * offer.Quantity);
+                foreach (var offer in _offers)
+                {
+                    var itemCount = tempItems.ContainsKey(offer.Sku) ? tempItems[offer.Sku] : 0;
+                    if (itemCount < offer.Quantity) continue;
+                    var countSubjectToOffer = itemCount / offer.Quantity;
+                    total += offer.OfferPrice * countSubjectToOffer;
+                    tempItems[offer.Sku] -= (countSubjectToOffer * offer.Quantity);
+                }
             }
 
             total += tempItems.Sum(item => _prices[item.Key] * item.Value);
